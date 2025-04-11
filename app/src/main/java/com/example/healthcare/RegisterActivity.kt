@@ -24,7 +24,6 @@ class RegisterActivity : ComponentActivity() {
         val btn: Button = findViewById(R.id.ButtonAppBack)
         val tv: TextView = findViewById(R.id.textViewNewUser)
 
-
         tv.setOnClickListener{
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)

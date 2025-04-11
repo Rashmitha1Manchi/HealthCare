@@ -10,6 +10,36 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HealthCare">
         <activity
+            android:name=".LabTestCVVActivity"
+            android:exported="false"
+            android:label="@string/title_activity_lab_test_cvvactivity"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
+            android:name=".LabTestPaymentActivity"
+            android:exported="false"
+            android:label="@string/title_activity_lab_test_payment"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
+            android:name=".AppointmentCVVActivity"
+            android:exported="false"
+            android:label="@string/title_activity_appointment_cvvactivity"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
+            android:name=".AppointmentPaymentActivity"
+            android:exported="false"
+            android:label="@string/title_activity_appointment_payment"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
+            android:name=".MedicineCVVActivity"
+            android:exported="false"
+            android:label="@string/title_activity_cvvactivity"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
+            android:name=".MedicinePaymentActivity"
+            android:exported="false"
+            android:label="@string/title_activity_payment"
+            android:theme="@style/Theme.HealthCare" />
+        <activity
             android:name=".HealthArticlesDetailsActivity"
             android:exported="false"
             android:label="@string/title_activity_health_articles_details"

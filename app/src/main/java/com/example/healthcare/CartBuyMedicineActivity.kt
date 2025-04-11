@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.SimpleAdapter
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -93,11 +94,16 @@ class CartBuyMedicineActivity : ComponentActivity() {
         }
 
         btnCheckout.setOnClickListener {
-            val intent = Intent(this, BuyMedicineBookActivity::class.java)
-            intent.putExtra("price", tvTotal.text.toString())
-            intent.putExtra("date", dateButton.text.toString())
-          //  intent.putExtra("time", timeButton.text.toString())
-            startActivity(intent)
+            if(dateButton.text != "Select date") {
+                val intent = Intent(this, BuyMedicineBookActivity::class.java)
+                intent.putExtra("price", tvTotal.text.toString())
+                intent.putExtra("date", dateButton.text.toString())
+                //  intent.putExtra("time", timeButton.text.toString())
+                startActivity(intent)
+            }
+            else{
+                Toast.makeText(this, "Please select date", Toast.LENGTH_SHORT).show()
+            }
         }
 
         initDatePicker()

@@ -126,16 +126,28 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextBMBAddress" />
 
     <Button
+        android:id="@+id/buttonBMBBack"
+        android:layout_width="283dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="68dp"
+        android:background="@drawable/btn_bg"
+        android:text="Back"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextBMBContactNumber" />
+
+    <Button
         android:id="@+id/buttonBMBBook"
         android:layout_width="283dp"
         android:layout_height="48dp"
-        android:layout_marginTop="52dp"
         android:background="@drawable/btn_bg"
         android:text="Book"
         android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextBMBContactNumber" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextBMBContactNumber"
+        app:layout_constraintVertical_bias="0.706" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

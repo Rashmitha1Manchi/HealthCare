@@ -6,10 +6,12 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ListView
 import android.widget.SimpleAdapter
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.Calendar
 
@@ -91,11 +93,19 @@ class CartLabActivity : AppCompatActivity() {
         }
 
         btnCheckout.setOnClickListener {
-            val intent = Intent(this, LabTestBookActivity::class.java)
-            intent.putExtra("price", tvTotal.text.toString())
-            intent.putExtra("date", dateButton.text.toString())
-            intent.putExtra("time", timeButton.text.toString())
-            startActivity(intent)
+            val selectedDate = dateButton.text.toString()
+            val selectedTime = timeButton.text.toString()
+
+            if (selectedDate == "Select Date" || selectedTime == "Select Time") {
+                Toast.makeText(this, "Please select both date and time", Toast.LENGTH_SHORT).show()
+            } else {
+                val intent = Intent(this, LabTestBookActivity::class.java)
+                intent.putExtra("price", tvTotal.text.toString())
+//                Log.d("CartLabActivity:", "Price : ${tvTotal.text}")
+                intent.putExtra("date", selectedDate)
+                intent.putExtra("time", selectedTime)
+                startActivity(intent)
+            }
         }
 
         initDatePicker()

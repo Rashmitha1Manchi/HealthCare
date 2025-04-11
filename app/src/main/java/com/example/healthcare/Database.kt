@@ -5,6 +5,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.SQLException
+import android.util.Log
+import java.security.MessageDigest
 
 class Database(context: Context?, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int) : SQLiteOpenHelper(context, name, factory, version) {
 
@@ -22,7 +24,7 @@ class Database(context: Context?, name: String?, factory: SQLiteDatabase.CursorF
            CREATE TABLE cart (
                 username TEXT,
                 product TEXT,
-                price FLOAT,
+                price REAL,
                 otype TEXT
            )
         """
@@ -42,6 +44,29 @@ class Database(context: Context?, name: String?, factory: SQLiteDatabase.CursorF
             )
         """
         db.execSQL(createOrderPlaced)
+
+        val createTableAccounts = """
+            CREATE TABLE accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_number TEXT UNIQUE NOT NULL,
+                expiry_date TEXT NOT NULL,
+                cvv TEXT NOT NULL,
+                balance REAL NOT NULL DEFAULT 10000.00
+            );
+        """
+        db.execSQL(createTableAccounts)
+        insertDummyAccounts(db)
+
+        val createTablePaymentDetails = """
+            CREATE TABLE paymentDetails(
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                username TEXT,
+                account_number TEXT, 
+                amount REAL, 
+                otype TEXT
+            );
+        """
+        db.execSQL(createTablePaymentDetails)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -209,5 +234,99 @@ class Database(context: Context?, name: String?, factory: SQLiteDatabase.CursorF
         return result
     }
 
+    private fun insertDummyAccounts(db: SQLiteDatabase) {
+        val dummyAccounts = listOf(
+            "9876543210123456" to "123",
+            "1234567890987654" to "456",
+            "1111222233334444" to "789",
+            "4444555566667777" to "234",
+            "9999000011112222" to "567",
+            "5555666677778888" to "890",
+            "1010101010101010" to "345",
+            "2020202020202020" to "678",
+            "3030303030303030" to "901",
+            "4040404040404040" to "432"
+        )
 
+        for ((accountNo, cvv) in dummyAccounts) {
+            val hashedAccountNo = hashData(accountNo)
+            val hashedCvv = hashData(cvv)
+
+            val values = ContentValues().apply {
+                put("account_number", hashedAccountNo)
+                put("expiry_date", "12/26") // Static expiry date for now
+                put("cvv", hashedCvv)
+                put("balance", 10000.00)
+            }
+
+            db.insert("accounts", null, values)
+        }
+    }
+
+    fun hashData(data: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(data.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
+    fun verifyCVV(accountNo: String, hashedCvv: String, dbHelper: Database): Boolean {
+        val db = readableDatabase
+        Log.d("Debug", "Hashed Acnt Num: ${hashData(accountNo.trim())}")
+        val cursor = db.rawQuery(
+            "SELECT * FROM accounts WHERE account_number = ? AND cvv = ?",
+            arrayOf(hashData(accountNo.trim()), hashedCvv)
+        )
+
+        val isValid = cursor.moveToFirst()
+        cursor.close()
+        db.close()
+
+        return isValid
+    }
+
+    fun processPayment(username: String, accountNo: String, amount: Double, orderType: String): Boolean {
+        val db = this.writableDatabase
+
+        val cursor = db.rawQuery("SELECT balance FROM accounts WHERE account_number = ?", arrayOf(accountNo))
+
+        if (cursor.moveToFirst()) {
+            val currentBalance = cursor.getDouble(0)
+
+            if (currentBalance >= amount) {
+                db.beginTransaction()
+                try {
+                    val updateBalanceQuery = "UPDATE accounts SET balance = balance - ? WHERE account_number = ?"
+                    db.execSQL(updateBalanceQuery, arrayOf(amount, accountNo))
+
+                    val insertPaymentQuery = "INSERT INTO paymentDetails (username, account_number, amount, otype) VALUES (?, ?, ?, ?)"
+                    db.execSQL(insertPaymentQuery, arrayOf(username, accountNo, amount, orderType))
+
+                    db.setTransactionSuccessful()
+                    return true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    db.endTransaction()
+                }
+            }
+        }
+        cursor.close()
+        return false
+    }
+
+    fun verifyAccount(accountNo: String, expiryDate: String, dbHelper: Database): Boolean {
+        val hashedAccountNo = hashData(accountNo.trim())
+        Log.d("DEBUG", "Hashed Input Account Number: $hashedAccountNo")
+
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT * FROM accounts WHERE account_number = ? AND expiry_date = ?",
+            arrayOf(hashedAccountNo, expiryDate)
+        )
+
+        val isValid = cursor.moveToFirst()
+        cursor.close()
+        db.close()
+
+        return isValid
+    }
 }

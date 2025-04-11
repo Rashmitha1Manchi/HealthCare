@@ -6,6 +6,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -19,6 +20,7 @@ class BookAppointmentActivity : AppCompatActivity() {
     private lateinit var timePickerDialog: TimePickerDialog
     private lateinit var dateButton: Button
     private lateinit var timeButton: Button
+    private lateinit var dbHelper: Database
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,7 @@ class BookAppointmentActivity : AppCompatActivity() {
 
         dateButton = findViewById(R.id.buttonCartDate)
         timeButton = findViewById(R.id.buttonCartTime)
+        dbHelper = Database(this, "healthcare.db", null, 1)
 
         val tv: TextView = findViewById(R.id.textViewAppTitle)
         val ed1: EditText = findViewById(R.id.editTextAppFullName)
@@ -70,31 +73,71 @@ class BookAppointmentActivity : AppCompatActivity() {
         }
 
         btnBook.setOnClickListener {
-            val db = Database(applicationContext, "healthcare.db", null, 1)
+
             val sharedPreferences = getSharedPreferences("shared_prefs", Context.MODE_PRIVATE)
             val username = sharedPreferences.getString("username", "") ?: ""
-            if (db.checkAppointmentExists(
-                    username,
-                    title+"=>"+fullName,
-                    address.toString(), contact.toString(), dateButton.text.toString(),timeButton.text.toString()
-                )==1
-            ) {
-                Toast.makeText(applicationContext, "Appointment already booked", Toast.LENGTH_LONG).show()
-            } else {
-                db.addOrder(
-                    username,
-                    title.toString()+"=>"+fullName.toString(),
-                    address.toString(),
-                    contact.toString(),
-                    pincode = 0.toString(),
-                    date = dateButton.text.toString(),
-                    time = timeButton.text.toString(),
-                    amount = fees?.toFloatOrNull() ?: 0.0f,
-                    otype = "Appointment"
-                )
-                Toast.makeText(applicationContext, "Your appointment is done successfully", Toast.LENGTH_LONG).show()
-                startActivity(Intent(this@BookAppointmentActivity, HomeActivity::class.java))
+
+            if(dateButton.text != "Select Date" && timeButton.text != "Select Time") {
+
+                if (dbHelper.checkAppointmentExists(
+                        username,
+                        title + "=>" + fullName,
+                        address.toString(),
+                        contact.toString(),
+                        dateButton.text.toString(),
+                        timeButton.text.toString()
+                    ) == 1
+                ) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Appointment already booked",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    val intent =
+                        Intent(this@BookAppointmentActivity, AppointmentPaymentActivity::class.java)
+                    intent.putExtra("username", username)
+                    intent.putExtra("doctorName", title.toString() + " => " + fullName.toString())
+                    intent.putExtra("address", address.toString())
+                    intent.putExtra("contact", contact.toString())
+                    intent.putExtra("fees", fees ?: "0.0")
+                    Log.d("BookAppointmentActivity", "${fees?.toFloatOrNull() ?: 0.0f}")
+                    intent.putExtra("date", dateButton.text.toString())
+                    intent.putExtra("time", timeButton.text.toString())
+                    intent.putExtra("orderType", "Appointment")
+                    startActivity(intent)
+                    finish()
+                }
             }
+            else{
+                Toast.makeText(this, "Please select date and time!", Toast.LENGTH_SHORT).show()
+            }
+
+//            val db = Database(applicationContext, "healthcare.db", null, 1)
+//            val sharedPreferences = getSharedPreferences("shared_prefs", Context.MODE_PRIVATE)
+//            val username = sharedPreferences.getString("username", "") ?: ""
+//            if (db.checkAppointmentExists(
+//                    username,
+//                    title+"=>"+fullName,
+//                    address.toString(), contact.toString(), dateButton.text.toString(),timeButton.text.toString()
+//                )==1
+//            ) {
+//                Toast.makeText(applicationContext, "Appointment already booked", Toast.LENGTH_LONG).show()
+//            } else {
+//                db.addOrder(
+//                    username,
+//                    title.toString()+" => "+fullName.toString(),
+//                    address.toString(),
+//                    contact.toString(),
+//                    pincode = 0.toString(),
+//                    date = dateButton.text.toString(),
+//                    time = timeButton.text.toString(),
+//                    amount = fees?.toFloatOrNull() ?: 0.0f,
+//                    otype = "Appointment"
+//                )
+//                Toast.makeText(applicationContext, "Your appointment is done successfully", Toast.LENGTH_LONG).show()
+//                startActivity(Intent(this@BookAppointmentActivity, HomeActivity::class.java))
+//            }
 
         }
     }

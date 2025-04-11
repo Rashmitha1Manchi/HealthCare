@@ -56,4 +56,10 @@
     <string name="title_activity_buy_medicine_book">BuyMedicineBookActivity</string>
     <string name="title_activity_health_articles">HealthArticlesActivity</string>
     <string name="title_activity_health_articles_details">HealthArticlesDetailsActivity</string>
+    <string name="title_activity_payment">PaymentActivity</string>
+    <string name="title_activity_cvvactivity">CVVActivity</string>
+    <string name="title_activity_appointment_payment">AppointmentPaymentActivity</string>
+    <string name="title_activity_appointment_cvvactivity">AppointmentCVVActivity</string>
+    <string name="title_activity_lab_test_payment">LabTestPaymentActivity</string>
+    <string name="title_activity_lab_test_cvvactivity">LabTestCVVActivity</string>
 </resources>

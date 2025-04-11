@@ -31,7 +31,7 @@ class OrderDetailsActivity : ComponentActivity() {
         val username = sharedPreferences.getString("username", "") ?: ""
         val dbData: ArrayList<String> = db.getOrderData(username)
 
-        val orderDetails = Array(dbData.size) { Array(5) { "" } }
+            val orderDetails = Array(dbData.size) { Array(5) { "" } }
         for (i in orderDetails.indices) {
             val arrData = dbData[i].toString()
             val strData = arrData.split("$")
