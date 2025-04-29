@@ -329,4 +329,10 @@ class Database(context: Context?, name: String?, factory: SQLiteDatabase.CursorF
 
         return isValid
     }
+
+    fun removeCartItem(username: String, item: String, otype: String) {
+        val db = writableDatabase
+        db.delete("cart", "username=? AND product=? AND otype=?", arrayOf(username, item, otype))
+        db.close()
+    }
 }

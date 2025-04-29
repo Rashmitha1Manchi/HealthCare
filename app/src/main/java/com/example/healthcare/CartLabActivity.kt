@@ -1,15 +1,15 @@
 package com.example.healthcare
 
+import CartAdapter
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.ListView
-import android.widget.SimpleAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -40,21 +40,11 @@ class CartLabActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences("shared_prefs", Context.MODE_PRIVATE)
         val username = sharedPreferences.getString("username", "").orEmpty()
 
-        val db = Database(getApplicationContext(), "healthcare.db", null, 1)
+        val db = Database(applicationContext, "healthcare.db", null, 1)
         var totalAmount = 0f
         val dbData = db.getCartData(username, "Lab")
 
-//        if (dbData.isEmpty()) {
-//            Toast.makeText(this, "No data found in cart", Toast.LENGTH_SHORT).show()
-//        } else {
-//            Toast.makeText(this, "DB Data: $dbData", Toast.LENGTH_SHORT).show()
-//        }
-
         val packages = Array(dbData.size) { Array(5) { "" } }
-
-        for (i in packages.indices) {
-            packages[i] = Array(5) { "" }
-        }
 
         for (i in dbData.indices) {
             val arrData = dbData[i].toString()
@@ -78,14 +68,31 @@ class CartLabActivity : AppCompatActivity() {
             list.add(item)
         }
 
-        val sa = SimpleAdapter(
-            this,
-            list,
-            R.layout.multi_lines,
-            arrayOf("line1", "line2", "line3", "line4", "line5"),
-            intArrayOf(R.id.textViewLine1, R.id.textViewLine2, R.id.textViewLine3, R.id.textViewLine4, R.id.textViewLine5)
-        )
-        lst.adapter = sa
+        val adapter = CartAdapter(this, list) { position ->
+            val itemToRemove = list[position]
+            val itemName = itemToRemove["line1"] ?: ""
+
+            // Remove from database
+            db.removeCartItem(username, itemName, "Lab")
+
+            // Extract cost from "Cost: 999/-"
+            val costStr = itemToRemove["line5"]
+                ?.replace("Cost: ", "")
+                ?.replace("/-", "")
+                ?.trim()
+
+            val itemCost = costStr?.toFloatOrNull() ?: 0f
+            totalAmount -= itemCost
+
+            // Update UI
+            tvTotal.text = "Total Cost: $totalAmount"
+            list.removeAt(position)
+            (lst.adapter as BaseAdapter).notifyDataSetChanged()
+
+            Toast.makeText(this, "$itemName removed from cart", Toast.LENGTH_SHORT).show()
+        }
+
+        lst.adapter = adapter
 
         btnBack.setOnClickListener {
             val intent = Intent(this, LabTestActivity::class.java)
@@ -101,7 +108,6 @@ class CartLabActivity : AppCompatActivity() {
             } else {
                 val intent = Intent(this, LabTestBookActivity::class.java)
                 intent.putExtra("price", tvTotal.text.toString())
-//                Log.d("CartLabActivity:", "Price : ${tvTotal.text}")
                 intent.putExtra("date", selectedDate)
                 intent.putExtra("time", selectedTime)
                 startActivity(intent)
